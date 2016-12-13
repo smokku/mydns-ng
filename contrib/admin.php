@@ -2628,7 +2628,7 @@ function soa_add() {
   $recursive = ($soa_use_recursive ? ",recursive" : "");
 
   $query = "INSERT INTO $soa_table_name" .
-    " (origin,ns,mbox,serial,refresh,retry,expire,minimum,ttl$active) VALUES (";
+    " (origin,ns,mbox,serial,refresh,retry,expire,minimum,ttl$active$recursive) VALUES (";
 
   $query .= "'" . esc($soa['origin']) . "'";
   $query .= ",'" . esc($soa['ns']) . "'";
