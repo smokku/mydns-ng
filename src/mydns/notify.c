@@ -134,29 +134,29 @@ notify_write(TASK *t) {
 	for (i = 0; i < array_numobjects(notify->slaves); i++) {
 		NOTIFYSLAVE *slave = (NOTIFYSLAVE*)array_fetch(notify->slaves, i);
 	
-		struct sockaddr *slaveaddr = (struct sockaddr*)&(slave->slaveaddr);
+		struct sockaddr_storage *slaveaddr = (struct sockaddr_storage*)&(slave->slaveaddr);
 
 		int		rv = 0;
 		int		slavelen = 0;
 		char	*msg = NULL;
 		int		port = 0;
 
-		if (slaveaddr->sa_family == AF_INET) {
+		if (slaveaddr->ss_family == AF_INET) {
 			slavelen = sizeof(struct sockaddr_in);
 #if HAVE_IPV6
-		} else if (slaveaddr->sa_family == AF_INET6) {
+		} else if (slaveaddr->ss_family == AF_INET6) {
 			slavelen = sizeof(struct sockaddr_in6);
 #endif
 		} else {
-			Warn(_("DNS NOTIFY Unknown address family %d"), slaveaddr->sa_family);
+			Warn(_("DNS NOTIFY Unknown address family %d"), slaveaddr->ss_family);
 			return TASK_FAILED;
 		}
 
-		if (slaveaddr->sa_family == AF_INET) {
+		if (slaveaddr->ss_family == AF_INET) {
 			msg = STRDUP(ipaddr(AF_INET, (void*)&(((struct sockaddr_in*)slaveaddr)->sin_addr)));
 			port = ntohs(((struct sockaddr_in*)slaveaddr)->sin_port);
 #if HAVE_IPV6
-		} else if (slaveaddr->sa_family == AF_INET6) {
+		} else if (slaveaddr->ss_family == AF_INET6) {
 			msg = STRDUP(ipaddr(AF_INET6, (void*)&(((struct sockaddr_in6*)slaveaddr)->sin6_addr)));
 			port = ntohs(((struct sockaddr_in6*)slaveaddr)->sin6_port);
 #endif
@@ -196,7 +196,7 @@ notify_write(TASK *t) {
 			continue; /* slave has not timed out yet - try again later */
 		}
 
-		if ((rv = sendto(t->fd, out, reqlen, 0, slaveaddr, slavelen)) < 0) {
+		if ((rv = sendto(t->fd, out, reqlen, 0, (struct sockaddr *)slaveaddr, slavelen)) < 0) {
 #if DEBUG_ENABLED && DEBUG_NOTIFY
 			DebugX("notify", 1, _("%s: DNS NOTIFY notify_write send to slave %s(%d) failed - %s(%d)"), desctask(t),
 				msg, port, strerror(errno), errno);
@@ -252,18 +252,18 @@ notify_write(TASK *t) {
 
 /* Record the reply from the slave */
 static int
-_notify_read(TASK *t, struct sockaddr *from, socklen_t fromlen) {
+_notify_read(TASK *t, struct sockaddr_storage *from, socklen_t fromlen) {
 	char		*msg = NULL;
 	NOTIFYDATA	*notify = (NOTIFYDATA*)t->extension;
 	int		i = 0;
 	int		slavecount = 0;
 
-	if (from->sa_family != t->family) { return 1; } /* Ignore this ... */
+	if (from->ss_family != t->family) { return 1; } /* Ignore this ... */
 
-	if (from->sa_family == AF_INET) {
+	if (from->ss_family == AF_INET) {
 		msg = STRDUP(ipaddr(AF_INET, (void*)(&((struct sockaddr_in*)from)->sin_addr)));
 #if HAVE_IPV6
-	} else if (from->sa_family == AF_INET6) {
+	} else if (from->ss_family == AF_INET6) {
 		msg = STRDUP(ipaddr(AF_INET6, (void*)(&((struct sockaddr_in6*)from)->sin6_addr)));
 #endif
 	}
@@ -281,7 +281,7 @@ _notify_read(TASK *t, struct sockaddr *from, socklen_t fromlen) {
 		/*
 		* Check that the message has been sent by the current slave, if not try next one!
 		*/
-		if (from->sa_family == AF_INET) {
+		if (from->ss_family == AF_INET) {
 			if (memcmp(&((struct sockaddr_in*)from)->sin_addr,
 				&((struct sockaddr_in*)slaveaddr)->sin_addr,
 				sizeof(struct in_addr)) != 0)
@@ -290,7 +290,7 @@ _notify_read(TASK *t, struct sockaddr *from, socklen_t fromlen) {
 				continue;
 			}
 #if HAVE_IPV6
-		} else if (from->sa_family == AF_INET6) {
+		} else if (from->ss_family == AF_INET6) {
 			if (memcmp(&((struct sockaddr_in6*)from)->sin6_addr,
 				&((struct sockaddr_in6*)slaveaddr)->sin6_addr,
 				sizeof(struct in6_addr) != 0))
@@ -323,7 +323,7 @@ notify_read(TASK *t) {
 	do {
 		char		*msg = NULL;
 		uchar		in[DNS_MAXPACKETLEN_UDP];
-		struct sockaddr	from;
+		struct sockaddr_storage	from;
 		socklen_t 		fromlen = 0;
 		TASK		*readT = NULL;
 		DNS_HEADER		hdr;
@@ -340,13 +340,13 @@ notify_read(TASK *t) {
 		src = in;
 
 		fromlen = sizeof(from);
-		rv = recvfrom(t->fd, (void*)in, sizeof(in), 0, &from, &fromlen);
+		rv = recvfrom(t->fd, (void*)in, sizeof(in), 0, (struct sockaddr *)&from, &fromlen);
 
-		if (from.sa_family == AF_INET) {
+		if (from.ss_family == AF_INET) {
 			msg = STRDUP(ipaddr(AF_INET, (void*)&(((struct sockaddr_in*)&from)->sin_addr)));
 			port = ntohs(((struct sockaddr_in*)&from)->sin_port);
 #if HAVE_IPV6
-		} else if (from.sa_family == AF_INET6) {
+		} else if (from.ss_family == AF_INET6) {
 			msg = STRDUP(ipaddr(AF_INET6, (void*)&(((struct sockaddr_in6*)&from)->sin6_addr)));
 			port = ntohs(((struct sockaddr_in6*)&from)->sin6_port);
 #endif
@@ -433,7 +433,7 @@ notify_read(TASK *t) {
 			}
 #endif
 			Warn(_("message from %s not a query response or for wrong opcode"), msg);
-			if ((newt = task_init(HIGH_PRIORITY_TASK, NEED_ANSWER, t->fd, SOCK_DGRAM, from.sa_family, &from))) {
+			if ((newt = task_init(HIGH_PRIORITY_TASK, NEED_ANSWER, t->fd, SOCK_DGRAM, from.ss_family, &from))) {
 				task_new(newt, (unsigned char*)in, rv);
 			}
 			RELEASE(msg);
@@ -944,7 +944,7 @@ name_servers2ip(TASK *t, ARRAY *name_servers,
 }
 
 static int
-notify_allocate_fd(int family, struct sockaddr *sourceaddr)
+notify_allocate_fd(int family, struct sockaddr_storage *sourceaddr)
 {
 	int fd = -1;
 
@@ -956,7 +956,7 @@ notify_allocate_fd(int family, struct sockaddr *sourceaddr)
 			Warn(_("setsockopt - %s(%d)"), strerror(errno), errno);
 		}
 		fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
-		if (bind(fd, sourceaddr,
+		if (bind(fd, (struct sockaddr *)sourceaddr,
 #if HAVE_IPV6
 			(family == AF_INET6)?sizeof(struct sockaddr_in6):
 #endif
@@ -988,18 +988,18 @@ notify_allocate_fd(int family, struct sockaddr *sourceaddr)
 	return fd;
 }
 
-static struct sockaddr *
+static struct sockaddr_storage *
 notify_get_source(int family, const char *sourceaddr)
 {
-	struct sockaddr *res = NULL;
+	struct sockaddr_storage *res = NULL;
 
+	res = (struct sockaddr_storage*)ALLOCATE(sizeof(struct sockaddr_storage), struct sockaddr_storage);
+	res->ss_family = family;
 	if (family == AF_INET) {
-		res = (struct sockaddr*)ALLOCATE(sizeof(struct sockaddr_in), struct sockaddr_in);
 		((struct sockaddr_in*)res)->sin_port = htons(0); /* Random port selection */
 		inet_pton(family, sourceaddr, (void*)&(((struct sockaddr_in*)res)->sin_addr));
 #if HAVE_IPV6
 	} else if (family == AF_INET6) {
-		res = (struct sockaddr*)ALLOCATE(sizeof(struct sockaddr_in6), struct sockaddr_in6);
 		((struct sockaddr_in6*)res)->sin6_port = htons(0); /* Random port selection */
 		inet_pton(family, sourceaddr, (void*)&(((struct sockaddr_in6*)res)->sin6_addr));
 #endif
@@ -1121,7 +1121,7 @@ notify_slaves(TASK *t, MYDNS_SOA *soa) {
 		}
 
 		if (array_numobjects(slavesipv4) > 0) {
-			static struct sockaddr *notifysource4 = NULL;
+			static struct sockaddr_storage *notifysource4 = NULL;
 			if (!notifysource4) {
 				notifysource4 = notify_get_source(AF_INET, conf_get(&Conf, "notify-source", NULL));
 			}
@@ -1178,7 +1178,7 @@ notify_slaves(TASK *t, MYDNS_SOA *soa) {
 		DONEIPV4:
 #if HAVE_IPV6
 		if (array_numobjects(slavesipv6)) {
-			static struct sockaddr *notifysource6 = NULL;
+			static struct sockaddr_storage *notifysource6 = NULL;
 			if (!notifysource6) {
 				notifysource6 = notify_get_source(AF_INET6,
 					conf_get(&Conf, "notify-source6", NULL));
