@@ -137,7 +137,7 @@ notify_write(TASK *t) {
 		struct sockaddr_storage *slaveaddr = (struct sockaddr_storage*)&(slave->slaveaddr);
 
 		int		rv = 0;
-		int		slavelen = 0;
+		socklen_t slavelen = 0;
 		char	*msg = NULL;
 		int		port = 0;
 
@@ -1219,7 +1219,7 @@ notify_slaves(TASK *t, MYDNS_SOA *soa) {
 			DebugX("notify", 1, _("%s: DNS NOTIFY notify_slaves initializing notifier IPV6 task for %s"),
 				desctask(t), soa->origin);
 #endif
-			notify_task = Ticktask_init(NORMAL_PRIORITY_TASK, NEED_NOTIFY_WRITE, notifyfd,
+			notify_task = Ticktask_init(NORMAL_PRIORITY_TASK, NEED_NOTIFY_WRITE, notifyfd6,
 						SOCK_DGRAM, AF_INET6, NULL);
 			notify_task->timeout = 0; /* Timeout immediately and therefore run */
 			notify_task->id = notify_task->internal_id;
