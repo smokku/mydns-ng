@@ -439,7 +439,7 @@ mydns_rr_build(uint32_t id,
   DebugX("lib-rr", 1, _("mydns_rr_build(): called for id=%d, zone=%d, type=%d, class=%d, aux=%d, "
 			"ttl=%d, active='%s', "
 #if USE_PGSQL
-			"stamp=%f, "
+			"stamp=%ld, "
 #else
 			"stamp=%p, "
 #endif
@@ -605,7 +605,7 @@ mydns_rr_parse(SQL_ROW row, unsigned long *lengths, const char *origin) {
   if (mydns_rr_use_active) active = row[ridx++];
   if (mydns_rr_use_stamp) {
 #if USE_PGSQL
-    stamp = row[ridx++];
+    stamp = (timestamp)row[ridx++];
 #else
     stamp = (MYSQL_TIME*)ALLOCATE(sizeof(MYSQL_TIME), MYSQL_TIME);
     memcpy(stamp, row[ridx++], sizeof(MYSQL_TIME));

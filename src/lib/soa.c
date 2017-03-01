@@ -331,7 +331,7 @@ mydns_soa_load(SQL *sqlConn, MYDNS_SOA **rptr, const char *origin) {
 
 #if DEBUG_ENABLED && DEBUG_LIB_SOA
     DebugX("lib-soa", 1, _("SOA query: use_soa_active=%d soa_active=%s,%d"), mydns_soa_use_active,
-	   (mydns_soa_use_active)?row[MYDNS_SOA_NUMFIELDS]:"<undef>",
+	   (mydns_soa_use_active)?(char*)row[MYDNS_SOA_NUMFIELDS]:"<undef>",
 	   (mydns_soa_use_active)?GETBOOL(row[MYDNS_SOA_NUMFIELDS]):-1);
     DebugX("lib-soa", 1, _("SOA query: id=%s, origin=%s, ns=%s, mbox=%s, serial=%s, refresh=%s, "
 			   "retry=%s, expire=%s, minimum=%s, ttl=%s"),
@@ -339,7 +339,7 @@ mydns_soa_load(SQL *sqlConn, MYDNS_SOA **rptr, const char *origin) {
     { int ridx = MYDNS_SOA_NUMFIELDS;
       ridx += (mydns_soa_use_active)?1:0;
       DebugX("lib-soa", 1, _("Soa query: recursive = %s"),
-	     (mydns_soa_use_recursive)?row[ridx++]:_("not recursing"));
+	     (mydns_soa_use_recursive)?(char*)row[ridx++]:_("not recursing"));
     }
 #endif
 

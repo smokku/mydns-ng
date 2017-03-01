@@ -1923,7 +1923,7 @@ process_update(TASK *t, MYDNS_SOA *soa, UQ *q, UQRR *rr, uint32_t next_serial) {
   }
 
   /* 2.5.2: Delete an RRset */
-  if (rr->type != DNS_CLASS_ANY && !UQRR_DATA_LENGTH(rr)) {
+  if (rr->type != DNS_QTYPE_ANY && !UQRR_DATA_LENGTH(rr)) {
 #if DEBUG_ENABLED && DEBUG_UPDATE
     DebugX("update", 1, _("%s: DNS UPDATE: 2.5.2: Delete an RRset"), desctask(t));
 #endif
@@ -1931,7 +1931,7 @@ process_update(TASK *t, MYDNS_SOA *soa, UQ *q, UQRR *rr, uint32_t next_serial) {
   }
 
   /* 2.5.3: Delete all RRsets from a name */
-  if (rr->type == DNS_CLASS_ANY && !UQRR_DATA_LENGTH(rr)) {
+  if (rr->type == DNS_QTYPE_ANY && !UQRR_DATA_LENGTH(rr)) {
 #if DEBUG_ENABLED && DEBUG_UPDATE
     DebugX("update", 1, _("%s: DNS UPDATE: 2.5.3: Delete all RRsets from a name"), desctask(t));
 #endif
@@ -1939,7 +1939,7 @@ process_update(TASK *t, MYDNS_SOA *soa, UQ *q, UQRR *rr, uint32_t next_serial) {
   }
 
   /* 2.5.4: Delete an RR from an RRset */
-  if (rr->type != DNS_CLASS_ANY && UQRR_DATA_LENGTH(rr)) {
+  if (rr->type != DNS_QTYPE_ANY && UQRR_DATA_LENGTH(rr)) {
 #if DEBUG_ENABLED && DEBUG_UPDATE
     DebugX("update", 1, _("%s: DNS UPDATE: 2.5.4: Delete an RR from an RRset"), desctask(t));
 #endif

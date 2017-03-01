@@ -160,14 +160,10 @@ cmdline(int argc, char **argv) {
   }
 
   /* Get NS and/or MBOX if specified */
-  if (optind < argc)
-    snprintf(ns, sizeof(ns), "%s", (char *)argv[optind++]);
-  if (optind < argc)
-    snprintf(mbox, sizeof(mbox), "%s", (char *)argv[optind++]);
-  if (LASTCHAR(ns) != '.')
-    strncat(ns, ".", sizeof(ns) - strlen(ns) - 1);
-  if (LASTCHAR(mbox) != '.')
-    strncat(mbox, ".", sizeof(mbox) - strlen(mbox) - 1);
+  if (optind++ < argc)
+    ASPRINTF(&ns, (LASTCHAR(argv[optind]) != '.' ? "%s." : "%s"), argv[optind]);
+  if (optind++ < argc)
+    ASPRINTF(&mbox, (LASTCHAR(argv[optind]) != '.' ? "%s." : "%s"), argv[optind]);
 }
 /*--- cmdline() ---------------------------------------------------------------------------------*/
 

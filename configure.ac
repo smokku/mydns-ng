@@ -153,6 +153,9 @@ AC_ENABLE_STATUS		#	Enable the STATUS opcode to check server status
 AC_DISABLE_DATE_LOGGING		#	Disable date/time in verbose output?
 AC_MYDNS_VARS			#	Set variables containing dirs
 
+# Silence annoying warnings
+AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CFLAGS="$CFLAGS -Wno-pointer-sign"], [], [])
+
 AC_CONFIG_FILES(contrib/Makefile  intl/Makefile\
 		po/Makefile.in \
 		m4/Makefile \

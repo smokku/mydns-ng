@@ -40,7 +40,7 @@ status_fake_rr(TASK *t, datasection_t ds, const char *name, const char *fmt, ...
   VASPRINTF(&buf, fmt, ap);
   va_end(ap);
 
-  rr = mydns_rr_build(0, 0, DNS_QTYPE_TXT, DNS_CLASS_CHAOS, 0, 0, NULL, NULL, 0,
+  rr = mydns_rr_build(0, 0, DNS_QTYPE_TXT, DNS_CLASS_CHAOS, 0, 0, NULL, 0, 0,
 		      (char*)name, buf, strlen(buf), NULL);
   /* Add to list */
   rrlist_add(t, ds, DNS_RRTYPE_RR, (void *)rr, (char*)name);
