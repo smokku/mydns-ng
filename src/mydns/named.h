@@ -194,7 +194,7 @@ typedef struct _notify_slave {
   int			replied;	/* Have we had a reply from the slave */
   int			retries;        /* How many retries have we made */
   time_t		lastsent;	/* Last message was sent then */
-  struct sockaddr	slaveaddr;
+  struct sockaddr_storage	slaveaddr;
 } NOTIFYSLAVE;
 
 extern taskexec_t	notify_write(TASK *);
