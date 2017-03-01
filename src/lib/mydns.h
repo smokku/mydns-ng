@@ -450,7 +450,7 @@ typedef struct _mydns_rr {				/* `rr' table data (resource records) */
 
   char			*active;
 #if USE_PGSQL
-  timestamp		*stamp;
+  timestamp		stamp;
 #else
   MYSQL_TIME		*stamp;
 #endif
@@ -566,7 +566,7 @@ extern void		_mydns_rr_free(MYDNS_RR *);
 extern MYDNS_RR		*mydns_rr_build(uint32_t, uint32_t, dns_qtype_t, dns_class_t, uint32_t, uint32_t,
 					char *active,
 #if USE_PGSQL
-					timestamp *stamp,
+					timestamp stamp,
 #else
 					MYSQL_TIME *stamp,
 #endif
